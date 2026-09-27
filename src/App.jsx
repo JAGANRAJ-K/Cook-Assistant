@@ -1,12 +1,20 @@
 import React from 'react'
+import {Routes , Route, BrowserRouter} from "react-router-dom"
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Favorites from './pages/Favorites'
+import RecipeDetails from './pages/RecipeDetails'
 
 const App = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <h1 className="text-4xl font-bold text-blue-600">
-        Cook Assistant
-      </h1>
-    </div>
+     <Routes>
+      <Route path="/" element={<Home/>} />
+      <Route path="/login" element={<Login/>} />
+      <Route path="/signup" element={<Signup/>} />
+      <Route path="/favorites" element={<Favorites/>} />
+      <Route path="/recipe/:id" element={<RecipeDetails/>} />
+     </Routes>
   )
 }
 
