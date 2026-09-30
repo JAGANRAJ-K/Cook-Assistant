@@ -1,8 +1,16 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
-const RecipeCard = ({name , image }) => {
+const RecipeCard = ({id,name , image }) => {
+
+  const navigate =useNavigate();
+  const handleClick=()=>{
+    navigate(`/recipe/${id}`);
+  };
   return (
-     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer">
+     <div 
+     onClick={handleClick}
+     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer">
     <img
       src={image}
       alt={name}
@@ -14,6 +22,7 @@ const RecipeCard = ({name , image }) => {
         {name}
       </h3>
     </div>
+    
   </div>
   )
 }

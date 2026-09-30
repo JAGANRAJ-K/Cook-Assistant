@@ -39,6 +39,7 @@ const Home = () => {
       {recipes.map((recipe) => (
         <RecipeCard
         key={recipe.idMeal}
+        id={recipe.idMeal}
         name={recipe.strMeal}
         // category={recipe.strCategory}
         image={recipe.strMealThumb}
