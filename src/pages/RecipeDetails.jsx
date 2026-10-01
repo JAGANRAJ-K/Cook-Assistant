@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const RecipeDetails = () => {
   const [recipe, setRecipe] = useState(null);
   const { id } = useParams();
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchRecipe = async () => {
       const response = await fetch(
@@ -12,7 +13,6 @@ const RecipeDetails = () => {
 
       const data = await response.json();
 
-      console.log(data.meals[0].strInstructions);
       setRecipe(data.meals[0]);
     };
 
@@ -32,8 +32,22 @@ const RecipeDetails = () => {
       ingredients.push(measure ? `${measure} ${ingredient}` : ingredient);
     }
   }
+
+  const instructions = recipe.strInstructions
+    .split("\n")
+    .filter((step) => step.trim() !== "")
+    .filter((step) => !step.toLowerCase().startsWith("step"));
+
+    const videoId = recipe.strYoutube?.split("v=")[1];
+
   return (
     <div className="p-6">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+      >
+        ← Back
+      </button>
       <img
         src={recipe.strMealThumb}
         alt={recipe.strMeal}
@@ -56,15 +70,26 @@ const RecipeDetails = () => {
 
       <h2 className="text-2xl font-semibold mt-6">Instructions</h2>
       <ol className="list-decimal pl-6 mt-2">
-        {recipe.strInstructions
-          .split("\n")
-          .filter((step) => step.trim() !== "")
-          .map((step, index) => (
-            <li key={index} className="mb-2">
-              {step}
-            </li>
-          ))}
+        {instructions.map((step, index) => (
+          <li key={index} className="mb-2">
+            {step}
+          </li>
+        ))}
       </ol>
+
+        <h2 className="text-2xl font-semibold mt-6">
+  Video Tutorial
+</h2>
+
+{videoId && (
+  <iframe
+    className="w-full max-w-3xl h-64 md:h-96 mt-4 rounded-lg"
+    src={`https://www.youtube.com/embed/${videoId}`}
+    title="Recipe Video"
+    allowFullScreen
+  ></iframe>
+)}
+
     </div>
   );
 };
