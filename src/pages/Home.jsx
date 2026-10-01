@@ -31,7 +31,8 @@ const Home = () => {
 
     const data = await response.json();
 
-    // console.log(data);
+    console.log(firstIngredient);
+    console.log(data);
     const meals = data.meals || [];
 
     if (ingredients.length === 1) {
@@ -42,39 +43,43 @@ const Home = () => {
       return;
     }
 
-    const matchedRecipes = [];
-    for (const meal of meals) {
-      const detailResponse = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`,
-      );
+   const detailedRecipes = await Promise.all(
+  meals.map(async (meal) => {
+    const detailResponse = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`,
+    );
 
-      const detailData = await detailResponse.json();
+    const detailData = await detailResponse.json();
 
-      const recipe = detailData.meals[0];
+    return detailData.meals[0];
+  }),
+);
 
-      console.log(recipe.strMeal);
-      const recipeIngredients = [];
+const matchedRecipes = [];
 
-      for (let i = 1; i <= 20; i++) {
-        const ingredient = recipe[`strIngredient${i}`];
+for (const recipe of detailedRecipes) {
+  const recipeIngredients = [];
 
-        if (ingredient && ingredient.trim() !== "") {
-          recipeIngredients.push(ingredient.toLowerCase());
-        }
-      }
+  for (let i = 1; i <= 20; i++) {
+    const ingredient = recipe[`strIngredient${i}`];
 
-      console.log(recipeIngredients);
-
-      const matchesAllIngredients = ingredients.every((ingredient) =>
-        recipeIngredients.includes(ingredient),
-      );
-
-      if (matchesAllIngredients) {
-        matchedRecipes.push(meal);
-      }
-
-      console.log(matchesAllIngredients);
+    if (ingredient && ingredient.trim() !== "") {
+      recipeIngredients.push(ingredient.toLowerCase());
     }
+  }
+
+  const matchesAllIngredients = ingredients.every((ingredient) =>
+    recipeIngredients.includes(ingredient),
+  );
+
+  if (matchesAllIngredients) {
+    matchedRecipes.push({
+      idMeal: recipe.idMeal,
+      strMeal: recipe.strMeal,
+      strMealThumb: recipe.strMealThumb,
+    });
+  }
+}
 
     setRecipes(matchedRecipes);
     setSearchTerm(value);
@@ -91,7 +96,7 @@ const Home = () => {
 
       {hasSearched && recipes.length === 0 && <h2>No recipes found</h2>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
         {recipes.map((recipe) => (
           <RecipeCard
             key={recipe.idMeal}
@@ -101,7 +106,7 @@ const Home = () => {
             image={recipe.strMealThumb}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };

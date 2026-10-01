@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { RecipeContext } from "../context/RecipeContext";
 
 const RecipeDetails = () => {
   const [recipe, setRecipe] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { favorites, setFavorites } = useContext(RecipeContext);
   useEffect(() => {
     const fetchRecipe = async () => {
       const response = await fetch(
@@ -38,7 +40,24 @@ const RecipeDetails = () => {
     .filter((step) => step.trim() !== "")
     .filter((step) => !step.toLowerCase().startsWith("step"));
 
-    const videoId = recipe.strYoutube?.split("v=")[1];
+  const videoId = recipe.strYoutube?.split("v=")[1];
+
+  const isFavorite = favorites.some((fav) => fav.idMeal === recipe.idMeal);
+
+  const handleFavorite = () => {
+    if (isFavorite) {
+      setFavorites(favorites.filter((fav) => fav.idMeal !== recipe.idMeal));
+    } else {
+      setFavorites([
+        ...favorites,
+        {
+          idMeal: recipe.idMeal,
+          strMeal: recipe.strMeal,
+          strMealThumb: recipe.strMealThumb,
+        },
+      ]);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -55,6 +74,13 @@ const RecipeDetails = () => {
       />
 
       <h1 className="text-3xl font-bold mt-4">{recipe.strMeal}</h1>
+
+      <button
+        onClick={handleFavorite}
+        className="mt-4 px-4 py-2 rounded bg-red-500 text-white"
+      >
+        {isFavorite ? "❤️ Remove from Favorites" : "🤍 Add to Favorites"}
+      </button>
 
       <p className="mt-2">Category: {recipe.strCategory}</p>
 
@@ -77,19 +103,16 @@ const RecipeDetails = () => {
         ))}
       </ol>
 
-        <h2 className="text-2xl font-semibold mt-6">
-  Video Tutorial
-</h2>
+      <h2 className="text-2xl font-semibold mt-6">Video Tutorial</h2>
 
-{videoId && (
-  <iframe
-    className="w-full max-w-3xl h-64 md:h-96 mt-4 rounded-lg"
-    src={`https://www.youtube.com/embed/${videoId}`}
-    title="Recipe Video"
-    allowFullScreen
-  ></iframe>
-)}
-
+      {videoId && (
+        <iframe
+          className="w-full max-w-3xl h-64 md:h-96 mt-4 rounded-lg"
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title="Recipe Video"
+          allowFullScreen
+        ></iframe>
+      )}
     </div>
   );
 };
