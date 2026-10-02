@@ -58,8 +58,6 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  
-
   console.log(chickenRecipes);
   console.log(dessertRecipes);
   console.log(seafoodRecipes);
@@ -72,84 +70,95 @@ const Home = () => {
     }
     setLoading(true);
 
-    try{
-
+    try {
       const ingredients = value
-      .toLowerCase()
-      .split(/[,\s]+/)
-      .filter((item) => item.trim() !== "");
-      
-      const firstIngredient = ingredients[0];
-    const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/1/filter.php?i=${firstIngredient}`,
-    );
+        .toLowerCase()
+        .split(/[,\s]+/)
+        .filter((item) => item.trim() !== "");
 
-    const data = await response.json();
+      const ingredientResults = await Promise.all(
+        ingredients.map(async (ingredient) => {
+          const response = await fetch(
+            `https://www.themealdb.com/api/json/v1/1/filter.php?i=${ingredient}`,
+          );
 
-    console.log(firstIngredient);
-    console.log(data);
-    const meals = data.meals || [];
+          const data = await response.json();
 
-    if (ingredients.length === 1) {
-      setRecipes(meals);
-      setSearchTerm(value);
-      setLoading(false);
-      navigate("/search-results");
-      return;
-    }
-    const limitedMeals = meals.slice(0, 20);
-    const detailedRecipes = await Promise.all(
-      limitedMeals.map(async (meal) => {
-        const detailResponse = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`,
-        );
-
-        const detailData = await detailResponse.json();
-
-        return detailData.meals[0];
-      }),
-    );
-
-    const matchedRecipes = [];
-    
-    for (const recipe of detailedRecipes) {
-      const recipeIngredients = [];
-
-      for (let i = 1; i <= 20; i++) {
-        const ingredient = recipe[`strIngredient${i}`];
-
-        if (ingredient && ingredient.trim() !== "") {
-          recipeIngredients.push(ingredient.toLowerCase());
-        }
-      }
-      
-      const matchesAllIngredients = ingredients.every((ingredient) =>
-        recipeIngredients.includes(ingredient),
+          return {
+            ingredient,
+            meals: data.meals || [],
+            count: data.meals?.length || 0,
+          };
+        }),
       );
 
-      if (matchesAllIngredients) {
-        matchedRecipes.push({
-          idMeal: recipe.idMeal,
-          strMeal: recipe.strMeal,
-          strMealThumb: recipe.strMealThumb,
-        });
+      ingredientResults.sort((a, b) => a.count - b.count);
+
+      const bestMatch = ingredientResults[0];
+
+      const meals = bestMatch.meals;
+
+      console.log("Best Ingredient:", bestMatch.ingredient);
+      console.log("Recipe Count:", bestMatch.count);
+
+      if (ingredients.length === 1) {
+        setRecipes(meals);
+        setSearchTerm(value);
+        navigate("/search-results");
+        return;
       }
+      const limitedMeals = meals.slice(0, 20);
+      const detailedRecipes = await Promise.all(
+        limitedMeals.map(async (meal) => {
+          const detailResponse = await fetch(
+            `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`,
+          );
+
+          const detailData = await detailResponse.json();
+
+          return detailData.meals[0];
+        }),
+      );
+
+      const matchedRecipes = [];
+
+      for (const recipe of detailedRecipes) {
+        const recipeIngredients = [];
+
+        for (let i = 1; i <= 20; i++) {
+          const ingredient = recipe[`strIngredient${i}`];
+
+          if (ingredient && ingredient.trim() !== "") {
+            recipeIngredients.push(ingredient.toLowerCase());
+          }
+        }
+
+        const matchesAllIngredients = ingredients.every((ingredient) =>
+          recipeIngredients.includes(ingredient),
+        );
+
+        if (matchesAllIngredients) {
+          matchedRecipes.push({
+            idMeal: recipe.idMeal,
+            strMeal: recipe.strMeal,
+            strMealThumb: recipe.strMealThumb,
+          });
+        }
+      }
+
+      setRecipes(matchedRecipes);
+      setSearchTerm(value);
+      // setHasSearched(true);
+      // setLoading(false);
+
+      navigate("/search-results");
+    } catch (error) {
+      console.log(error);
+
+      alert(`Failed to fetch recipes...`);
+    } finally {
+      setLoading(false);
     }
-    
-    setRecipes(matchedRecipes);
-    setSearchTerm(value);
-    // setHasSearched(true);
-    // setLoading(false);
-    
-    navigate("/search-results");
-  } catch (error){
-    console.log(error);
-    
-    alert("Failed to fetch recipes.");
-  }
-  finally{
-    setLoading(false);
-  }
   };
 
   return (
@@ -178,25 +187,25 @@ const Home = () => {
         handleViewAll={handleViewAll}
       />
       <CategorySection
-  title="🍰 Dessert"
-  category="Dessert"
-  recipes={dessertRecipes}
-  handleViewAll={handleViewAll}
-/>
+        title="🍰 Dessert"
+        category="Dessert"
+        recipes={dessertRecipes}
+        handleViewAll={handleViewAll}
+      />
 
-<CategorySection
-  title="🐟 Seafood"
-  category="Seafood"
-  recipes={seafoodRecipes}
-  handleViewAll={handleViewAll}
-/>
+      <CategorySection
+        title="🐟 Seafood"
+        category="Seafood"
+        recipes={seafoodRecipes}
+        handleViewAll={handleViewAll}
+      />
 
-<CategorySection
-  title="🥗 Vegetarian"
-  category="Vegetarian"
-  recipes={vegetarianRecipes}
-  handleViewAll={handleViewAll}
-/>
+      <CategorySection
+        title="🥗 Vegetarian"
+        category="Vegetarian"
+        recipes={vegetarianRecipes}
+        handleViewAll={handleViewAll}
+      />
     </div>
   );
 };
