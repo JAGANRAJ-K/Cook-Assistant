@@ -105,14 +105,18 @@ const RecipeDetails = () => {
 
       <h2 className="text-2xl font-semibold mt-6">Video Tutorial</h2>
 
-      {videoId && (
-        <iframe
-          className="w-full max-w-3xl h-64 md:h-96 mt-4 rounded-lg"
-          src={`https://www.youtube.com/embed/${videoId}`}
-          title="Recipe Video"
-          allowFullScreen
-        ></iframe>
-      )}
+      {videoId ? (
+  <iframe
+    className="w-full max-w-3xl h-64 md:h-96 mt-4 rounded-lg"
+    src={`https://www.youtube.com/embed/${videoId}`}
+    title="Recipe Video"
+    allowFullScreen
+  ></iframe>
+) : (
+  <p className="mt-4 text-gray-500">
+    No video tutorial available for this recipe.
+  </p>
+)}
     </div>
   );
 };
